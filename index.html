@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InformaQuest - Game Edukasi Informatika</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and glassmorphism effects */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        
+        .option-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-card:hover:not(.disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .pulse-anim { animation: pulse-subtle 2s infinite ease-in-out; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-800 font-sans min-h-screen flex flex-col justify-between selection:bg-blue-500 selection:text-white bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-800 via-slate-900 to-black">
+
+    <!-- Header Navigation -->
+    <header class="w-full max-w-5xl mx-auto px-4 pt-4 pb-2 flex justify-between items-center text-white">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <i class="fa-solid fa-laptop-code text-lg text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-heading font-bold text-xl tracking-wide bg-gradient-to-r from-blue-400 to-indigo-200 bg-clip-text text-transparent">InformaQuest</h1>
+                <p class="text-xs text-slate-400 hidden sm:block">Media Pembelajaran Interaktif Informatika</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center space-x-3">
+            <button id="soundToggleBtn" onclick="toggleAudio()" class="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 flex items-center justify-center text-slate-300 transition-colors" title="Beralih Suara">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+            </button>
+            <button onclick="showInfoModal()" class="w-10 h-10 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 flex items-center justify-center text-slate-300 transition-colors" title="Panduan & Petunjuk">
+                <i class="fa-solid fa-circle-info"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl mx-auto px-4 py-4 flex-grow flex items-center justify-center">
+
+        <!-- 1. WELCOME / START SCREEN -->
+        <section id="startScreen" class="w-full glass-card rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-16 -top-16 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-16 -bottom-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center max-w-2xl mx-auto">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 mb-4">
+                    <i class="fa-solid fa-graduation-cap mr-1.5"></i> Modul Pembelajaran Informatika
+                </span>
+                <h2 class="font-heading text-3xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
+                    Uji Kemampuan <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Berpikir Komputasional</span> & <span class="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">MS Word</span>
+                </h2>
+                <p class="text-slate-600 text-sm sm:text-base mb-8">
+                    Selesaikan 25 soal pilihan ganda acak dengan 5 opsi jawaban (A, B, C, D, E) untuk melatih pemahaman materi dan meningkatkan kemampuan digitalmu.
+                </p>
+
+                <!-- Student Data Form -->
+                <form id="startForm" onsubmit="startGame(event)" class="space-y-4 text-left max-w-md mx-auto mb-8 bg-slate-50/80 p-5 rounded-2xl border border-slate-200">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="studentName">
+                            Nama Lengkap Siswa <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <input type="text" id="studentName" required placeholder="Contoh: Ahmad Rizky" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 placeholder-slate-400 text-sm transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" for="studentClass">
+                            Kelas / Rombel <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="fa-solid fa-users-rectangle"></i>
+                            </span>
+                            <input type="text" id="studentClass" required placeholder="Contoh: 7-A / 8-B" 
+                                class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-800 placeholder-slate-400 text-sm transition-all outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Mode Permainan
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center p-2.5 border rounded-xl bg-white cursor-pointer hover:border-blue-400 transition-colors">
+                                <input type="radio" name="gameMode" value="practice" checked class="text-blue-600 focus:ring-blue-500">
+                                <div class="ml-2">
+                                    <span class="block text-xs font-bold text-slate-800">Latihan</span>
+                                    <span class="block text-[10px] text-slate-500">Pembahasan langsung</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-2.5 border rounded-xl bg-white cursor-pointer hover:border-blue-400 transition-colors">
+                                <input type="radio" name="gameMode" value="exam" class="text-blue-600 focus:ring-blue-500">
+                                <div class="ml-2">
+                                    <span class="block text-xs font-bold text-slate-800">Ujian Simulasi</span>
+                                    <span class="block text-[10px] text-slate-500">Hasil di akhir</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25 transition-all transform active:scale-95 flex items-center justify-center space-x-2">
+                        <span>Mulai Petualangan Game</span>
+                        <i class="fa-solid fa-gamepad"></i>
+                    </button>
+                </form>
+
+                <!-- Game Rules summary badges -->
+                <div class="grid grid-cols-3 gap-2 text-center text-xs text-slate-600 border-t border-slate-200/80 pt-4">
+                    <div class="p-2 rounded-lg bg-slate-50">
+                        <i class="fa-solid fa-list-check text-blue-500 mb-1 block text-base"></i>
+                        <span>25 Soal Lengkap</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-50">
+                        <i class="fa-solid fa-shuffle text-indigo-500 mb-1 block text-base"></i>
+                        <span>Soal & Opsi Acak</span>
+                    </div>
+                    <div class="p-2 rounded-lg bg-slate-50">
+                        <i class="fa-solid fa-award text-amber-500 mb-1 block text-base"></i>
+                        <span>Skor & Laporan</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. GAMEPLAY SCREEN -->
+        <section id="gameScreen" class="w-full glass-card rounded-3xl p-5 sm:p-8 shadow-2xl hidden">
+            <!-- Game Header Status Bar -->
+            <div class="flex flex-wrap justify-between items-center gap-3 pb-4 mb-4 border-b border-slate-200">
+                <div class="flex items-center space-x-3">
+                    <span id="topicBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                        Topic
+                    </span>
+                    <span class="text-xs font-semibold text-slate-500">
+                        Soal <span id="currentQuestionNum" class="text-slate-900 font-bold">1</span> dari <span id="totalQuestionsNum">25</span>
+                    </span>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <!-- Streak counter -->
+                    <div class="flex items-center space-x-1 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 text-amber-700 text-xs font-bold" title="Rangkaian Jawaban Benar">
+                        <i class="fa-solid fa-fire text-amber-500 animate-bounce"></i>
+                        <span id="streakCount">0</span>
+                    </div>
+                    <!-- Current Score -->
+                    <div class="bg-slate-100 px-3 py-1 rounded-lg text-xs font-bold text-slate-700 border border-slate-200">
+                        Skor: <span id="liveScore" class="text-blue-600 font-extrabold text-sm">0</span>
+                    </div>
+                    <!-- Timer -->
+                    <div class="flex items-center space-x-1.5 bg-slate-800 text-white px-3 py-1 rounded-lg text-xs font-mono font-bold">
+                        <i class="fa-regular fa-clock text-blue-400"></i>
+                        <span id="timerDisplay">00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-200 rounded-full h-2 mb-6 overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full transition-all duration-300 w-0"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="mb-6">
+                <h3 id="questionText" class="text-lg sm:text-xl font-bold text-slate-800 leading-relaxed">
+                    Pertanyaan akan muncul di sini...
+                </h3>
+            </div>
+
+            <!-- 5 Options Container (A, B, C, D, E) -->
+            <div id="optionsContainer" class="space-y-3 mb-6">
+                <!-- Dynamic options injected here -->
+            </div>
+
+            <!-- Practice Mode Explanation Box -->
+            <div id="explanationBox" class="hidden mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div class="flex items-start space-x-3">
+                    <div id="explanationIcon" class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <h4 id="explanationTitle" class="font-bold text-sm mb-1">Pembahasan:</h4>
+                        <p id="explanationText" class="text-xs sm:text-sm text-slate-600 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div class="flex justify-between items-center pt-2">
+                <button id="hintBtn" onclick="useHint()" class="px-3.5 py-2 rounded-xl text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors flex items-center space-x-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                    <span>Petunjuk (Bantuan 50:50)</span>
+                </button>
+
+                <button id="nextBtn" onclick="nextQuestion()" disabled class="px-6 py-2.5 rounded-xl bg-slate-300 text-slate-500 font-bold text-sm transition-all flex items-center space-x-2">
+                    <span>Lanjut Soal</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. RESULT / CERTIFICATE SCREEN -->
+        <section id="resultScreen" class="w-full glass-card rounded-3xl p-6 sm:p-10 shadow-2xl hidden text-center">
+            <!-- Completion Header -->
+            <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 flex items-center justify-center text-amber-900 text-3xl shadow-lg shadow-amber-500/30">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+
+            <h2 class="font-heading text-2xl sm:text-3xl font-extrabold text-slate-900 mb-1">
+                Luar Biasa, <span id="resStudentName" class="text-blue-600">Siswa</span>!
+            </h2>
+            <p class="text-slate-500 text-xs sm:text-sm mb-6">
+                Kamu telah menyelesaikan seluruh 25 Soal Game Informatika.
+            </p>
+
+            <!-- Final Score Cards Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto mb-8">
+                <div class="p-3.5 rounded-2xl bg-blue-50 border border-blue-100">
+                    <span class="block text-[11px] font-bold text-blue-600 uppercase">Nilai Akhir</span>
+                    <span id="resScore" class="text-2xl sm:text-3xl font-extrabold text-blue-700">0</span>
+                    <span class="text-[10px] text-blue-500">/ 100</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100">
+                    <span class="block text-[11px] font-bold text-emerald-600 uppercase">Jawaban Benar</span>
+                    <span id="resCorrect" class="text-2xl sm:text-3xl font-extrabold text-emerald-700">0</span>
+                    <span class="text-[10px] text-emerald-500">/ 25 Soal</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-100">
+                    <span class="block text-[11px] font-bold text-indigo-600 uppercase">Akurasi</span>
+                    <span id="resAccuracy" class="text-2xl sm:text-3xl font-extrabold text-indigo-700">0%</span>
+                    <span class="text-[10px] text-indigo-500">Tingkat Ketepatan</span>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-purple-50 border border-purple-100">
+                    <span class="block text-[11px] font-bold text-purple-600 uppercase">Total Waktu</span>
+                    <span id="resTime" class="text-xl sm:text-2xl font-extrabold text-purple-700 mt-1 block">00:00</span>
+                    <span class="text-[10px] text-purple-500">Durasi Pengerjaan</span>
+                </div>
+            </div>
+
+            <!-- Grade Predicate Badge -->
+            <div class="mb-8 inline-block bg-slate-100 px-6 py-3 rounded-2xl border border-slate-200">
+                <span class="text-xs text-slate-500 block mb-0.5">Predikat Kelulusan:</span>
+                <span id="resPredicate" class="font-heading text-lg font-bold text-slate-800">Sangat Baik</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center gap-3 max-w-md mx-auto">
+                <button onclick="copySummary()" class="flex-1 min-w-[140px] py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-copy"></i>
+                    <span>Salin Ringkasan Nilai</span>
+                </button>
+                <button onclick="toggleReviewModal()" class="flex-1 min-w-[140px] py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>Review Kunci Jawaban</span>
+                </button>
+                <button onclick="resetGame()" class="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md transition-all flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Main Lagi (Soal Diacak)</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full text-center py-4 text-xs text-slate-500">
+        <p>InformaQuest &copy; 2026 Game Edukasi Informatika | Berpikir Komputasional & Microsoft Word</p>
+    </footer>
+
+    <!-- MODAL: INFO & INSTRUCTIONS -->
+    <div id="infoModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative border border-slate-200">
+            <button onclick="hideInfoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <div>
+                    <h3 class="font-heading font-bold text-lg text-slate-900">Petunjuk Game Kuis</h3>
+                    <p class="text-xs text-slate-500">Cara bermain & informasi aturan</p>
+                </div>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-b border-slate-100 py-4 my-2 max-h-[60vh] overflow-y-auto">
+                <p><strong>1. Cakupan Materi:</strong> Kuis terdiri dari 25 soal acak yang memuat materi Berpikir Komputasional (Dekomposisi, Abstraksi, Pola, Algoritma) & Operasional Dasar Microsoft Word.</p>
+                <p><strong>2. Opsi Jawaban:</strong> Setiap soal memiliki 5 pilihan jawaban (A, B, C, D, dan E). Pilihan jawaban juga diacak setiap kali dimainkan.</p>
+                <p><strong>3. Mode Latihan:</strong> Kamu dapat melihat umpan balik dan pembahasan materi langsung setelah memilih jawaban.</p>
+                <p><strong>4. Fitur Bantuan (50:50):</strong> Kamu dapat menggunakan tombol bantuan 1x per sesi game untuk menghilangkan 2 opsi jawaban yang salah.</p>
+                <p><strong>5. Penyerahan Hasil:</strong> Di akhir permainan, gunakan tombol <em>"Salin Ringkasan Nilai"</em> untuk dikirimkan kepada guru penilai.</p>
+            </div>
+
+            <div class="mt-4 text-right">
+                <button onclick="hideInfoModal()" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs">
+                    Saya Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: REVIEW JAWABAN -->
+    <div id="reviewModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-3xl w-full h-[85vh] flex flex-col p-6 shadow-2xl relative">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-200">
+                <div>
+                    <h3 class="font-heading font-bold text-lg text-slate-900">Review Pembahasan Soal</h3>
+                    <p class="text-xs text-slate-500">Lihat evaluasi jawabanmu di bawah ini</p>
+                </div>
+                <button onclick="toggleReviewModal()" class="text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div id="reviewContainer" class="flex-grow overflow-y-auto py-4 space-y-4 pr-2">
+                <!-- Dynamically filled with review cards -->
+            </div>
+
+            <div class="pt-3 border-t border-slate-200 text-right">
+                <button onclick="toggleReviewModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-900">
+                    Tutup Review
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center space-x-3 transition-all duration-300 transform translate-y-20 opacity-0 z-50">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg" class="text-xs font-semibold">Pesan Toast</span>
+    </div>
+
+    <script>
+        // Audio Synthesizer via Web Audio API (No external sound files required)
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.35);
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.setValueAtTime(174.61, now + 0.12); // F3
+
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.04);
+
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.04);
+            }
+
+            playVictory() {
+                if (this.muted) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const now = this.ctx.currentTime + (idx * 0.12);
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                });
+            }
+        }
+
+        const sound = new SoundFX();
+
+        function toggleAudio() {
+            sound.muted = !sound.muted;
+            const soundIcon = document.getElementById('soundIcon');
+            if (sound.muted) {
+                soundIcon.className = 'fa-solid fa-volume-xmark text-red-400';
+                showToast("Suara dimatikan", "info");
+            } else {
+                soundIcon.className = 'fa-solid fa-volume-high text-emerald-400';
+                sound.playClick();
+                showToast("Suara diaktifkan", "success");
+            }
+        }
+
+        // QUESTION BANK (25 High-Quality Questions: 12 Berpikir Komputasional + 13 Microsoft Word)
+        // Each question has 5 options (A, B, C, D, E) and detailed educational explanations.
+        const originalQuestionBank = [
+            // --- TOPIC 1: BERPIKIR KOMPUTASIONAL (1-12) ---
+            {
+                id: 1,
+                topic: "Berpikir Komputasional",
+                question: "Saat dihadapkan pada masalah komplek seperti membuat aplikasi sekolah, kamu membaginya menjadi beberapa bagian kecil seperti modul nilai, modul presensi, dan modul jadwal. Teknik ini dalam berpikir komputasional disebut...",
+                options: [
+                    "Dekomposisi",
+                    "Pengenalan Pola (Pattern Recognition)",
+                    "Abstraksi",
+                    "Algoritma",
+                    "Evaluasi Sederhana"
+                ],
+                answer: 0,
+                explanation: "Dekomposisi adalah proses memecah masalah besar atau kompleks menjadi bagian-bagian yang lebih kecil dan lebih mudah dikelola."
+            },
+            {
+                id: 2,
+                topic: "Berpikir Komputasional",
+                question: "Seorang siswa memperhatikan bahwa setiap kali lampu indikator router berkedip merah, koneksi internet selalu terputus. Kemampuan menemukan kesamaan kondisi ini menerapkan prinsip...",
+                options: [
+                    "Dekomposisi masalah",
+                    "Pengenalan Pola (Pattern Recognition)",
+                    "Abstraksi data",
+                    "Perancangan Algoritma",
+                    "Generalisasi Biner"
+                ],
+                answer: 1,
+                explanation: "Pengenalan Pola adalah kemampuan untuk mengidentifikasi kesamaan, tren, atau pola dari pengalaman atau data terdahulu."
+            },
+            {
+                id: 3,
+                topic: "Berpikir Komputasional",
+                question: "Saat membuat peta rute angkutan umum sekolah, kamu menghapus detail pohon, warna rumah warga, dan merk mobil di jalan, serta hanya menampilkan titik pemberhentian dan garis rute. Prinsip berpikir yang digunakan adalah...",
+                options: [
+                    "Algoritma",
+                    "Pengenalan Pola",
+                    "Abstraksi",
+                    "Dekomposisi",
+                    "Pengodean (Coding)"
+                ],
+                answer: 2,
+                explanation: "Abstraksi adalah memfokuskan perhatian pada informasi penting saja dan mengabaikan detail-detail yang tidak relevan."
+            },
+            {
+                id: 4,
+                topic: "Berpikir Komputasional",
+                question: "Langkah-langkah terurut, logis, dan sistematis untuk menyelesaikan suatu masalah dari awal hingga akhir dinamakan...",
+                options: [
+                    "Sistem Operasi",
+                    "Algoritma",
+                    "Pseudocode",
+                    "Flowchart",
+                    "Variabel"
+                ],
+                answer: 1,
+                explanation: "Algoritma adalah urutan langkah-langkah logis yang disusun secara sistematis untuk menyelesaikan suatu permasalahan."
+            },
+            {
+                id: 5,
+                topic: "Berpikir Komputasional",
+                question: "Manakah di bawah ini yang merupakan contoh penerapan Berpikir Komputasional dalam kehidupan sehari-hari?",
+                options: [
+                    "Menebak isi buku tanpa membacanya",
+                    "Menulis resep masakan dengan urutan langkah yang jelas dan terukur",
+                    "Membeli barang secara acak di minimarket",
+                    "Menghafal seluruh isi kamus bahasa Inggris dalam semalam",
+                    "Menonton video tutorial tanpa mempraktikkannya"
+                ],
+                answer: 1,
+                explanation: "Menulis resep masakan dengan urutan takaran dan langkah terurut adalah contoh nyata perancangan algoritma pada kehidupan sehari-hari."
+            },
+            {
+                id: 6,
+                topic: "Berpikir Komputasional",
+                question: "Di perpustakaan, terdapat 1.000 buku yang belum tersusun. Untuk mempermudah pencarian, pustakawan mengelompokkan buku berdasarkan kategori (Sains, Sejarah, Bahasa) lalu mengurutkannya sesuai abjad pengarang. Strategi ini menggunakan kombinasi...",
+                options: [
+                    "Abstraksi dan Pengodean",
+                    "Dekomposisi, Pengenalan Pola, dan Algoritma",
+                    "Hanya Dekomposisi saja",
+                    "Enkripsi dan Dekripsi",
+                    "Kombinasi Hardware dan Software"
+                ],
+                answer: 1,
+                explanation: "Mengelompokkan berdasarkan kategori (Dekomposisi & Pola) dan mengurutkan secara sistematis (Algoritma) adalah penerapan berfikir komputasional secara terpadu."
+            },
+            {
+                id: 7,
+                topic: "Berpikir Komputasional",
+                question: "Teknik pencarian yang dilakukan dengan cara membagi dua kumpulan data yang sudah terurut secara berulang-ulang hingga data ditemukan disebut...",
+                options: [
+                    "Linear Search",
+                    "Binary Search (Pencarian Biner)",
+                    "Bubble Sort",
+                    "Insertion Search",
+                    "Selection Search"
+                ],
+                answer: 1,
+                explanation: "Binary Search adalah algoritma pencarian efisien yang membagi dua area pencarian data terurut secara berulang."
+            },
+            {
+                id: 8,
+                topic: "Berpikir Komputasional",
+                question: "Perhatikan deret angka berikut: 2, 4, 8, 16, X, 64. Berdasarkan pengenalan pola yang ada, nilai X yang tepat adalah...",
+                options: [
+                    "24",
+                    "30",
+                    "32",
+                    "36",
+                    "48"
+                ],
+                answer: 2,
+                explanation: "Pola angka tersebut adalah perkalian 2 (dikali dua untuk setiap suku berikutnya). Jadi 16 x 2 = 32."
+            },
+            {
+                id: 9,
+                topic: "Berpikir Komputasional",
+                question: "Representasi algoritma yang menggunakan bentuk-bentuk simbol grafis (seperti oval, persegi panjang, jajaran genjang) untuk menggambarkan alur kerja disebut...",
+                options: [
+                    "Pseudocode",
+                    "Flowchart (Diagram Alir)",
+                    "Bahasa C++",
+                    "Mind Map",
+                    "Diagram Venn"
+                ],
+                answer: 1,
+                explanation: "Flowchart (Diagram Alir) adalah representasi visual atau simbolis dari langkah-langkah algoritma."
+            },
+            {
+                id: 10,
+                topic: "Berpikir Komputasional",
+                question: "Simbol standar Flowchart yang berbentuk persegi panjang berfungsi untuk menyatakan...",
+                options: [
+                    "Awal atau Akhir program (Start/End)",
+                    "Proses pengolahan data atau perhitungan",
+                    "Keputusan/Kondisi cabang (Decision)",
+                    "Input / Output data",
+                    "Arah aliran dokumen"
+                ],
+                answer: 1,
+                explanation: "Simbol persegi panjang pada flowchart menandakan tahap Proses (Process) pengolahan data atau instruksi."
+            },
+            {
+                id: 11,
+                topic: "Berpikir Komputasional",
+                question: "Struktur algoritma yang menjalankan instruksi berdasarkan kondisi 'JIKA... MAKA... JIKA TIDAK...' dinamakan struktur...",
+                options: [
+                    "Runtunan (Sequential)",
+                    "Percabangan (Selection / Branching)",
+                    "Pengulangan (Looping)",
+                    "Rekursif",
+                    "Fungsi Modular"
+                ],
+                answer: 1,
+                explanation: "Struktur Percabangan (Selection/Branching) mengevaluasi kondisi logis untuk menentukan jalur langkah selanjutnya."
+            },
+            {
+                id: 12,
+                topic: "Berpikir Komputasional",
+                question: "Mengapa efisiensi algoritma sangat penting dalam pembuatan program komputer?",
+                options: [
+                    "Agar kode program terlihat lebih panjang dan rumit",
+                    "Meningkatkan penggunaan memori komputer seluas mungkin",
+                    "Menghemat waktu eksekusi dan penggunaan sumber daya komputer",
+                    "Agar program tidak dapat dibaca oleh orang lain",
+                    "Menggantikan peran perangkat keras komputer secara total"
+                ],
+                answer: 2,
+                explanation: "Algoritma yang efisien membutuhkan waktu pemrosesan lebih cepat dan mengonsumsi penggunaan memori/sumber daya sistem secara optimal."
+            },
+
+            // --- TOPIC 2: OPERASIONAL MICROSOFT WORD (13-25) ---
+            {
+                id: 13,
+                topic: "Microsoft Word",
+                question: "Pintasan tombol (shortcut) keyboard pada Microsoft Word yang digunakan untuk membatalkan perintah atau tindakan terakhir (Undo) adalah...",
+                options: [
+                    "Ctrl + C",
+                    "Ctrl + V",
+                    "Ctrl + Z",
+                    "Ctrl + Y",
+                    "Ctrl + X"
+                ],
+                answer: 2,
+                explanation: "Ctrl + Z berfungsi untuk Undo (membatalkan tindakan terakhir), sedangkan Ctrl + Y berfungsi untuk Redo."
+            },
+            {
+                id: 14,
+                topic: "Microsoft Word",
+                question: "Kombinasi tombol keyboard yang tepat untuk meratakan paragraf teks menjadi rata kanan dan rata kiri secara seimbang (Justify) adalah...",
+                options: [
+                    "Ctrl + L",
+                    "Ctrl + E",
+                    "Ctrl + R",
+                    "Ctrl + J",
+                    "Ctrl + M"
+                ],
+                answer: 3,
+                explanation: "Ctrl + J digunakan untuk rata kanan-kiri (Justify). Ctrl+L (Left), Ctrl+E (Center), dan Ctrl+R (Right)."
+            },
+            {
+                id: 15,
+                topic: "Microsoft Word",
+                question: "Fitur pada Microsoft Word yang sangat berguna untuk membuat surat massal atau sertifikat dengan format sama namun nama penerima berbeda dinamakan...",
+                options: [
+                    "Mail Merge",
+                    "Table of Contents",
+                    "Find and Replace",
+                    "Track Changes",
+                    "WordArt"
+                ],
+                answer: 0,
+                explanation: "Mail Merge adalah fitur MS Word untuk menghubungkan dokumen master dengan basis data penerima secara otomatis."
+            },
+            {
+                id: 16,
+                topic: "Microsoft Word",
+                question: "Untuk mengubah batas jarak kertas (atas, bawah, kiri, kanan) pada dokumen MS Word, menu Ribbon yang harus dipilih adalah...",
+                options: [
+                    "Home -> Paragraph",
+                    "Layout -> Margins",
+                    "Insert -> Page Break",
+                    "View -> Page Layout",
+                    "Design -> Page Borders"
+                ],
+                answer: 1,
+                explanation: "Menu Layout -> Margins berfungsi untuk mengatur batas jarak tepi kertas pada lembar kerja MS Word."
+            },
+            {
+                id: 17,
+                topic: "Microsoft Word",
+                question: "Fitur yang digunakan untuk menyalin format gaya teks (seperti jenis font, ukuran, dan warna) dari satu teks ke teks lain tanpa mengetik ulang adalah...",
+                options: [
+                    "Copy Paste",
+                    "Format Painter",
+                    "Font Style",
+                    "Clear Formatting",
+                    "Text Effect"
+                ],
+                answer: 1,
+                explanation: "Format Painter (ikon kuas) digunakan untuk menyalin seluruh atribut format teks dengan sekali klik."
+            },
+            {
+                id: 18,
+                topic: "Microsoft Word",
+                question: "Shortcut keyboard Ctrl + H pada Microsoft Word berfungsi untuk membuka jendela...",
+                options: [
+                    "Hyperlink",
+                    "Header & Footer",
+                    "Find and Replace (Cari dan Ganti Teks)",
+                    "Help Center",
+                    "Highlight Color"
+                ],
+                answer: 2,
+                explanation: "Ctrl + H memunculkan kotak dialog 'Find and Replace' untuk mencari kata dan menggantinya secara otomatis."
+            },
+            {
+                id: 19,
+                topic: "Microsoft Word",
+                question: "Untuk menambahkan penomoran halaman otomatis di bagian bawah atau atas setiap lembar dokumen, kita menggunakan fitur...",
+                options: [
+                    "Watermark",
+                    "Header & Footer / Page Number",
+                    "Footnote",
+                    "Page Setup",
+                    "Drop Cap"
+                ],
+                answer: 1,
+                explanation: "Page Number yang berada dalam menu Insert -> Header & Footer berfungsi memberikan nomor halaman otomatis."
+            },
+            {
+                id: 20,
+                topic: "Microsoft Word",
+                question: "Bagaimanakah cara mengubah arah posisi kertas dari tegak (Portrait) menjadi melebar/miring (Landscape)?",
+                options: [
+                    "Menu Insert -> Orientation -> Landscape",
+                    "Menu Layout -> Orientation -> Landscape",
+                    "Menu Home -> Page Setup -> Landscape",
+                    "Menu View -> Orientation -> Landscape",
+                    "Menu Design -> Page Size -> Landscape"
+                ],
+                answer: 1,
+                explanation: "Orientasi halaman dapat diubah melalui tab menu Layout -> Orientation -> Landscape."
+            },
+            {
+                id: 21,
+                topic: "Microsoft Word",
+                question: "Opsi 'Wrap Text' pada gambar di MS Word yang membuat teks mengalir mengelilingi gambar secara rapat mengikuti bentuk gambar adalah...",
+                options: [
+                    "In Line with Text",
+                    "Square",
+                    "Tight",
+                    "Behind Text",
+                    "In Front of Text"
+                ],
+                answer: 2,
+                explanation: "Opsi 'Tight' membuat alur teks merapat secara presisi mengelilingi lekukan objek/gambar."
+            },
+            {
+                id: 22,
+                topic: "Microsoft Word",
+                question: "Shortcut keyboard untuk menyimpan dokumen yang sedang diubah secara cepat (Save) adalah...",
+                options: [
+                    "Ctrl + A",
+                    "Ctrl + P",
+                    "Ctrl + S",
+                    "Ctrl + O",
+                    "Ctrl + N"
+                ],
+                answer: 2,
+                explanation: "Ctrl + S merupakan pintasan standar untuk menyimpan (Save) dokumen yang sedang aktif."
+            },
+            {
+                id: 23,
+                topic: "Microsoft Word",
+                question: "Apa perbedaan utama antara perintah 'Save' dan 'Save As' pada Microsoft Word?",
+                options: [
+                    "Save hanya untuk mencetak, Save As untuk menyimpan",
+                    "Save menyimpan perubahan pada file yang ada, sedangkan Save As menyimpan dokumen dengan nama/lokasi/format baru",
+                    "Save As tidak bisa menentukan lokasi penyimpanan",
+                    "Save khusus untuk dokumen bergambar, Save As khusus teks",
+                    "Tidak ada perbedaan sama sekali"
+                ],
+                answer: 1,
+                explanation: "Save menyimpan pembaruan file yang ada, sementara Save As digunakan untuk membuat salinan baru dengan nama atau direktori lain."
+            },
+            {
+                id: 24,
+                topic: "Microsoft Word",
+                question: "Langkah otomatis yang paling tepat untuk membuat Daftar Isi (Table of Contents) pada dokumen karya ilmiah MS Word adalah...",
+                options: [
+                    "Mengetik judul bab dan titik-titik secara manual menggunakan spasi",
+                    "Menerapkan Style Heading (Heading 1, Heading 2) pada bab/subbab lalu memilih References -> Table of Contents",
+                    "Menggunakan fitur Mail Merge untuk menggabungkan daftar isi",
+                    "Mengubah semua teks menjadi format tabel manual",
+                    "Menyalin teks dari dokumen PDF lain"
+                ],
+                answer: 1,
+                explanation: "Daftar Isi Otomatis dibangun dengan memformat judul bab menggunakan Styles (Heading 1, 2) lalu dibuat lewat References -> Table of Contents."
+            },
+            {
+                id: 25,
+                topic: "Microsoft Word",
+                question: "Jarak spasi antar baris kalimat dalam satu paragraf dapat diatur secara cepat dengan shortcut keyboard. Kombinasi tombol untuk spasi 1.5 baris adalah...",
+                options: [
+                    "Ctrl + 1",
+                    "Ctrl + 2",
+                    "Ctrl + 5",
+                    "Ctrl + 1.5",
+                    "Shift + Enter"
+                ],
+                answer: 2,
+                explanation: "Ctrl + 5 mengatur spasi baris 1.5. (Ctrl + 1 untuk spasi 1, dan Ctrl + 2 untuk spasi ganda/2)."
+            }
+        ];
+
+        // GAME STATE MANAGEMENT
+        let currentQuestions = [];
+        let currentQuestionIdx = 0;
+        let score = 0;
+        let correctCount = 0;
+        let streak = 0;
+        let hintUsedCurrentQuestion = false;
+        let hintAvailable = true;
+        let timerInterval = null;
+        let totalSeconds = 0;
+        let gameMode = 'practice'; // 'practice' or 'exam'
+        let studentData = { name: '', class: '' };
+        let userAnswers = []; // Records user responses for review
+
+        // Fisher-Yates Shuffle algorithm for true randomization
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Prepare question set with randomized questions AND randomized options
+        function prepareQuestions() {
+            // 1. Shuffle original question order
+            const shuffled = shuffleArray(originalQuestionBank);
+
+            // 2. Map and shuffle options while tracking the correct index
+            return shuffled.map(q => {
+                const optionsWithOrigIdx = q.options.map((optText, origIdx) => ({
+                    text: optText,
+                    isCorrect: origIdx === q.answer
+                }));
+                
+                const shuffledOpts = shuffleArray(optionsWithOrigIdx);
+                const newCorrectIdx = shuffledOpts.findIndex(o => o.isCorrect);
+
+                return {
+                    id: q.id,
+                    topic: q.topic,
+                    question: q.question,
+                    options: shuffledOpts.map(o => o.text),
+                    answer: newCorrectIdx,
+                    explanation: q.explanation
+                };
+            });
+        }
+
+        function startGame(e) {
+            e.preventDefault();
+            sound.playClick();
+
+            const nameInput = document.getElementById('studentName').value.trim();
+            const classInput = document.getElementById('studentClass').value.trim();
+            const modeInput = document.querySelector('input[name="gameMode"]:checked').value;
+
+            if (!nameInput || !classInput) {
+                showToast("Harap isi Nama dan Kelas terlebih dahulu!", "error");
+                return;
+            }
+
+            studentData = { name: nameInput, class: classInput };
+            gameMode = modeInput;
+
+            // Reset Game Variables
+            currentQuestions = prepareQuestions();
+            currentQuestionIdx = 0;
+            score = 0;
+            correctCount = 0;
+            streak = 0;
+            totalSeconds = 0;
+            hintAvailable = true;
+            userAnswers = [];
+
+            // UI Screen Transitions
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+
+            startTimer();
+            renderQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                totalSeconds++;
+                const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+                const secs = (totalSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            const q = currentQuestions[currentQuestionIdx];
+            hintUsedCurrentQuestion = false;
+
+            // Reset UI states
+            document.getElementById('explanationBox').classList.add('hidden');
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.className = "px-6 py-2.5 rounded-xl bg-slate-300 text-slate-500 font-bold text-sm cursor-not-allowed transition-all flex items-center space-x-2";
+
+            // Update Header Stats
+            document.getElementById('topicBadge').textContent = q.topic;
+            document.getElementById('currentQuestionNum').textContent = currentQuestionIdx + 1;
+            document.getElementById('totalQuestionsNum').textContent = currentQuestions.length;
+            document.getElementById('streakCount').textContent = streak;
+            document.getElementById('liveScore').textContent = score;
+
+            // Update Progress Bar
+            const progressPercent = ((currentQuestionIdx + 1) / currentQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+            // Question Text
+            document.getElementById('questionText').textContent = q.question;
+
+            // Render 5 Options (A, B, C, D, E)
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            const prefixes = ['A', 'B', 'C', 'D', 'E'];
+
+            q.options.forEach((optText, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `option-card w-full text-left p-4 rounded-2xl bg-white border border-slate-200 text-slate-800 flex items-start space-x-3.5 shadow-sm hover:border-blue-400 focus:outline-none transition-all`;
+                btn.onclick = () => selectOption(idx);
+                btn.dataset.index = idx;
+
+                btn.innerHTML = `
+                    <span class="option-prefix w-7 h-7 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center flex-shrink-0 border border-slate-200">
+                        ${prefixes[idx]}
+                    </span>
+                    <span class="text-xs sm:text-sm pt-0.5 leading-relaxed font-medium">${escapeHtml(optText)}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Hint Button state
+            const hintBtn = document.getElementById('hintBtn');
+            if (!hintAvailable) {
+                hintBtn.disabled = true;
+                hintBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                hintBtn.disabled = false;
+                hintBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        function selectOption(selectedIdx) {
+            const q = currentQuestions[currentQuestionIdx];
+            const optionsContainer = document.getElementById('optionsContainer');
+            const buttons = optionsContainer.querySelectorAll('button');
+
+            // Prevent double selection
+            if (buttons[0].classList.contains('disabled')) return;
+
+            const isCorrect = (selectedIdx === q.answer);
+
+            // Record user response
+            userAnswers.push({
+                question: q.question,
+                topic: q.topic,
+                options: q.options,
+                selected: selectedIdx,
+                correct: q.answer,
+                isCorrect: isCorrect,
+                explanation: q.explanation
+            });
+
+            // Disable further clicks
+            buttons.forEach(btn => btn.classList.add('disabled'));
+
+            if (isCorrect) {
+                sound.playCorrect();
+                streak++;
+                correctCount++;
+                score += 4; // 25 questions * 4 = 100 max score
+            } else {
+                sound.playWrong();
+                streak = 0;
+            }
+
+            document.getElementById('liveScore').textContent = score;
+            document.getElementById('streakCount').textContent = streak;
+
+            // Visual feedback on options
+            buttons.forEach((btn, idx) => {
+                const prefixSpan = btn.querySelector('.option-prefix');
+
+                if (idx === q.answer) {
+                    // Highlight correct answer
+                    btn.classList.remove('bg-white', 'border-slate-200');
+                    btn.classList.add('bg-emerald-50', 'border-emerald-500', 'text-emerald-900', 'ring-2', 'ring-emerald-400');
+                    prefixSpan.classList.remove('bg-slate-100', 'text-slate-700');
+                    prefixSpan.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                } else if (idx === selectedIdx && !isCorrect) {
+                    // Highlight selected wrong answer
+                    btn.classList.remove('bg-white', 'border-slate-200');
+                    btn.classList.add('bg-rose-50', 'border-rose-400', 'text-rose-900');
+                    prefixSpan.classList.remove('bg-slate-100', 'text-slate-700');
+                    prefixSpan.classList.add('bg-rose-500', 'text-white', 'border-rose-600');
+                } else {
+                    btn.classList.add('opacity-50');
+                }
+            });
+
+            // Show explanation if in Practice Mode
+            if (gameMode === 'practice') {
+                const expBox = document.getElementById('explanationBox');
+                const expIcon = document.getElementById('explanationIcon');
+                const expTitle = document.getElementById('explanationTitle');
+                const expText = document.getElementById('explanationText');
+
+                expBox.classList.remove('hidden');
+                expText.textContent = q.explanation;
+
+                if (isCorrect) {
+                    expIcon.className = 'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-emerald-500 text-white font-bold';
+                    expTitle.className = 'font-bold text-sm text-emerald-800 mb-0.5';
+                    expTitle.textContent = 'Jawaban Benar! 🎉';
+                } else {
+                    expIcon.className = 'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-rose-500 text-white font-bold';
+                    expTitle.className = 'font-bold text-sm text-rose-800 mb-0.5';
+                    expTitle.textContent = 'Jawaban Kurang Tepat!';
+                }
+            }
+
+            // Enable Next Button
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+            nextBtn.className = "px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md transition-all flex items-center space-x-2 transform active:scale-95";
+        }
+
+        function useHint() {
+            if (!hintAvailable || hintUsedCurrentQuestion) return;
+
+            const q = currentQuestions[currentQuestionIdx];
+            const optionsContainer = document.getElementById('optionsContainer');
+            const buttons = Array.from(optionsContainer.querySelectorAll('button'));
+
+            // Find wrong options excluding correct answer
+            const wrongOptionButtons = buttons.filter((btn, idx) => idx !== q.answer);
+            const shuffledWrong = shuffleArray(wrongOptionButtons);
+
+            // Hide 2 wrong options
+            if (shuffledWrong.length >= 2) {
+                shuffledWrong[0].classList.add('invisible');
+                shuffledWrong[1].classList.add('invisible');
+            }
+
+            hintAvailable = false;
+            hintUsedCurrentQuestion = true;
+            document.getElementById('hintBtn').disabled = true;
+            document.getElementById('hintBtn').classList.add('opacity-50', 'cursor-not-allowed');
+
+            sound.playClick();
+            showToast("Bantuan 50:50 digunakan! Dua pilihan salah telah dihapus.", "info");
+        }
+
+        function nextQuestion() {
+            sound.playClick();
+            currentQuestionIdx++;
+
+            if (currentQuestionIdx < currentQuestions.length) {
+                renderQuestion();
+            } else {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            clearInterval(timerInterval);
+            sound.playVictory();
+
+            // Trigger Confetti effect
+            try {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } catch (e) {
+                console.log("Confetti library loaded");
+            }
+
+            // Calculate Metrics
+            const totalQ = currentQuestions.length;
+            const accuracy = Math.round((correctCount / totalQ) * 100);
+            
+            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const secs = (totalSeconds % 60).toString().padStart(2, '0');
+            const timeStr = `${mins}:${secs}`;
+
+            // Predicate
+            let predicate = "";
+            let predicateColor = "";
+            if (score >= 90) {
+                predicate = "Istimewa (Sangat Menguasai) 🏆";
+                predicateColor = "text-amber-600";
+            } else if (score >= 75) {
+                predicate = "Baik (Tuntas Terampil) 🌟";
+                predicateColor = "text-emerald-600";
+            } else if (score >= 60) {
+                predicate = "Cukup (Perlu Latihan Tambahan) 📚";
+                predicateColor = "text-blue-600";
+            } else {
+                predicate = "Perlu Pendampingan Belajar 💡";
+                predicateColor = "text-rose-600";
+            }
+
+            // Populate Result Screen
+            document.getElementById('resStudentName').textContent = `${studentData.name} (${studentData.class})`;
+            document.getElementById('resScore').textContent = score;
+            document.getElementById('resCorrect').textContent = correctCount;
+            document.getElementById('resAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('resTime').textContent = timeStr;
+            
+            const predEl = document.getElementById('resPredicate');
+            predEl.textContent = predicate;
+            predEl.className = `font-heading text-lg font-bold ${predicateColor}`;
+
+            // Switch Screen
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            buildReviewList();
+        }
+
+        function buildReviewList() {
+            const container = document.getElementById('reviewContainer');
+            container.innerHTML = '';
+
+            const prefixes = ['A', 'B', 'C', 'D', 'E'];
+
+            userAnswers.forEach((ans, idx) => {
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-2xl border ${ans.isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'}`;
+
+                let optionsListHtml = '';
+                ans.options.forEach((optText, oIdx) => {
+                    let badgeClass = 'bg-slate-100 text-slate-600';
+                    let textClass = 'text-slate-700';
+
+                    if (oIdx === ans.correct) {
+                        badgeClass = 'bg-emerald-500 text-white font-bold';
+                        textClass = 'text-emerald-900 font-bold';
+                    } else if (oIdx === ans.selected && !ans.isCorrect) {
+                        badgeClass = 'bg-rose-500 text-white font-bold';
+                        textClass = 'text-rose-900 line-through';
+                    }
+
+                    optionsListHtml += `
+                        <div class="flex items-start space-x-2 text-xs my-1">
+                            <span class="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 ${badgeClass}">${prefixes[oIdx]}</span>
+                            <span class="${textClass}">${escapeHtml(optText)}</span>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${ans.isCorrect ? 'bg-emerald-200 text-emerald-800' : 'bg-rose-200 text-rose-800'}">
+                            Soal ${idx + 1} - ${ans.topic} (${ans.isCorrect ? 'Benar' : 'Salah'})
+                        </span>
+                    </div>
+                    <p class="text-xs sm:text-sm font-bold text-slate-800 mb-2">${escapeHtml(ans.question)}</p>
+                    <div class="space-y-1 mb-3 bg-white p-3 rounded-xl border border-slate-200/80">
+                        ${optionsListHtml}
+                    </div>
+                    <p class="text-xs text-slate-600 bg-slate-100/80 p-2.5 rounded-lg border border-slate-200">
+                        <strong>Pembahasan:</strong> ${escapeHtml(ans.explanation)}
+                    </p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function copySummary() {
+            sound.playClick();
+            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const secs = (totalSeconds % 60).toString().padStart(2, '0');
+            const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
+
+            const summaryText = `--- HASIL GAME EDULAB INFORMATIKA ---
+Nama Siswa : ${studentData.name}
+Kelas      : ${studentData.class}
+Nilai Akhir: ${score} / 100
+Benar      : ${correctCount} dari 25 Soal
+Akurasi    : ${accuracy}%
+Waktu      : ${mins}:${secs}
+Predikat   : ${document.getElementById('resPredicate').textContent}
+------------------------------------
+Diselesaikan melalui game interaktif InformaQuest.`;
+
+            // Fallback copy execution
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = summaryText;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+
+            showToast("Ringkasan nilai berhasil disalin! Tinggal paste ke WA/Google Classroom Guru.", "success");
+        }
+
+        function resetGame() {
+            sound.playClick();
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        function toggleReviewModal() {
+            sound.playClick();
+            const modal = document.getElementById('reviewModal');
+            modal.classList.toggle('hidden');
+        }
+
+        function showInfoModal() {
+            sound.playClick();
+            document.getElementById('infoModal').classList.remove('hidden');
+        }
+
+        function hideInfoModal() {
+            sound.playClick();
+            document.getElementById('infoModal').classList.add('hidden');
+        }
+
+        function showToast(message, type = "info") {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.textContent = message;
+
+            if (type === "success") {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400";
+            } else if (type === "error") {
+                toastIcon.className = "fa-solid fa-circle-xmark text-rose-400";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-info text-blue-400";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>
